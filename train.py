@@ -46,12 +46,9 @@ def load_dataset():
     idx=0
     label_idx = 0
 
+    print(IMAGE_DIRS)
     for dir_path in IMAGE_DIRS:
         for img_name in tqdm(os.listdir(dir_path), unit='actions', ascii=True):
-            idx+=1
-            if idx % 2 == 0:
-                continue
-            
             print(img_name)
             img = cv2.imread("{imagedir}/{imgname}".format(imagedir=dir_path, imgname=img_name))
             img = cv2.resize(img, size)
@@ -59,32 +56,22 @@ def load_dataset():
             labels.append([1 if label_idx == list_idx else 0 for list_idx in range(0,len(IMAGE_DIRS))])
         label_idx +=1
 
-        print("DATASET LOADED")
-
-        return np.array(dataset_img), np.array(labels)
+    print("DATASET LOADED")
+    print(labels)
+    return np.array(dataset_img), np.array(labels)
 
 dataset, label = load_dataset()
 
 dataset = dataset / 255.0
 
-print(dataset[0:10])
-print(label[0:10])
 dataset, label = shuffle(dataset,  label, random_state=0)
-
-print(dataset[0:10])
-print(label[0:10])
 
 X_train, X_test, Y_train, Y_test = train_test_split(
     dataset, label, test_size=0.15)
 
 del dataset
 del label
-'''
-clf = ak.ImageClassifier(verbose=True)
-clf.fit(X_train, T_train)
-results = clf.predict(X_test)
-print(results)
-'''
+
 model = Sequential()
 model.add(Conv2D(32,kernel_size=(3, 3), activation='relu', input_shape=X_train[0].shape))
 model.add(Conv2D(64, (3, 3), activation='relu'))
@@ -114,8 +101,6 @@ model.fit(np.array(X_train), np.array(Y_train),
           class_weight = class_weight,
           shuffle=True,
           callbacks=[early_stopping])
-
-#model.save_weights(os.environ['HOME']+"/Models/chips/model_binary_simple.hdf5")
 
 result=model.predict(np.array(X_test))
 
